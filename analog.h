@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 /*
-
+ *
  */
 hash_t *iniciar_vuelos();
 /*
