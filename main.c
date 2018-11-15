@@ -9,5 +9,6 @@
 
 int main(void) {
   hash_t *vuelos = iniciar_vuelos();
+
   return 0;
 }
