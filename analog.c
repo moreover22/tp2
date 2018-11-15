@@ -15,7 +15,10 @@ hash_t *iniciar_vuelos() {
 
   return vuelos;
 }
-bool agregar_archivo(hash_t *vuelos, const char *nombre_archivo) {}
+bool agregar_archivo(hash_t *vuelos, const char *nombre_archivo) {
+	
+	
+}
 bool ver_tablero(hash_t *vuelos, int cant_vuelos, const char *modo,
                  fecha_t desde, fecha_t hasta) {}
 bool info_vuelo(hash_t *vuelos, const char *cod_vuelo) {}
