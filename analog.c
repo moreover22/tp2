@@ -59,6 +59,7 @@ bool agregar_archivo(hash_t* vuelos,abb_t*  tablero_vuelos,const char *nombre_ar
 	FILE* archivo_vuelos=fopen(nombre_archivo,"r");
 	
 	if(!archivo_vuelos)return false;
+	
 	char* linea=NULL;
 	size_t cantidad=0;
 	
@@ -69,10 +70,17 @@ bool agregar_archivo(hash_t* vuelos,abb_t*  tablero_vuelos,const char *nombre_ar
 		linea[leidos-1]='\0';
 		char** datos_vuelo=split(linea,",");
 		char *clave_vuelo=datos[0];
-		vuelo_t*vuelo=malloc(sizeof(vuelo_t));
-		inicializar_vuelo(datos,vuelo);
-		hash_guardar(hash,clave_vuelo,vuelo);
-		abb_guardar(tablero_vuelos,clave,vuelo);
+		vuelo_t*vuelo=NULL;
+		if(hash_pertenece(hash,clave)){
+			vuelo=(vuelo_t*)hash_obtener(hash,clave);
+			inicializar_vuelo(datos,vuelo);
+		}
+		else{
+			vuelo_t*vuelo=malloc(sizeof(vuelo_t));
+			inicializar_vuelo(datos,vuelo);
+			hash_guardar(hash,clave_vuelo,vuelo);
+			abb_guardar(tablero_vuelos,clave,vuelo->numero);
+		}
 		free(datos);
 	}
 	
