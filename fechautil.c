@@ -77,7 +77,7 @@ char *fechaAStr(fecha_t *fecha) {
   char hora[L_HORA];
   sprintf(hora, "%d%c%d%c%d", fecha.H, HORA_SEP, fecha.M, HORA_SEP, fecha.S,
           HORA_SEP);
-  char fecha_hora[L_FECHA_HORA];
+  char *fecha_hora = malloc(sizeof(char) * L_FECHA_HORA);
   sprintf(fecha_hora, "%s%c%s", fecha, FECHA_HORA_SEP, hora);
   return fecha_hora;
 }
