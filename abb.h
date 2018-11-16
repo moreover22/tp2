@@ -1,16 +1,16 @@
 #ifndef ABB_H
 #define ABB_H
 
-#include <unistd.h>
 #include <stdbool.h>
+#include <unistd.h>
 /* ******************************************************************
  *                DEFINICION DE LOS TIPOS DE DATOS
  * *****************************************************************/
 
 /* El ABB está planteado como un ABB de punteros genéricos. */
 typedef struct abb abb_t;
-typedef int (*abb_comparar_clave_t) (const char *, const char *);
-typedef void (*abb_destruir_dato_t) (void *);
+typedef int (*abb_comparar_clave_t)(const char *, const char *);
+typedef void (*abb_destruir_dato_t)(void *);
 
 /* ******************************************************************
  *                    PRIMITIVAS DEL ABB
@@ -22,7 +22,7 @@ typedef void (*abb_destruir_dato_t) (void *);
  * se guarda en el ABB.
  * Post: devuelve un nuevo ABB vacío.
  */
-abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato);
+abb_t *abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato);
 
 /* Agrega un elemento al arbol. Devuelve false en caso de error.
  * En caso que ya exista la clave, se actualiza el dato.
@@ -40,17 +40,17 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato);
  */
 void *abb_borrar(abb_t *arbol, const char *clave);
 
-/* Devuelve el dato de la clave si es que existe, NULL en caso 
+/* Devuelve el dato de la clave si es que existe, NULL en caso
  * contrario.
  * Pre: arbol fue creado.
- * Post: se devolvió el dato de la clave o NULL si la clave no 
+ * Post: se devolvió el dato de la clave o NULL si la clave no
  * está en el arbol.
  */
 void *abb_obtener(const abb_t *arbol, const char *clave);
 
 /* Devuelve true en caso de que la clave esté en el arbol.
  * Pre: arbol fue creado.
- * Post: Devuelve true si hay un elemento en el arbol con 
+ * Post: Devuelve true si hay un elemento en el arbol con
  * la clave indicada, false caso contrario.
  */
 bool abb_pertenece(const abb_t *arbol, const char *clave);
@@ -78,7 +78,8 @@ void abb_destruir(abb_t *arbol);
  * visitar a cada elemento.
  * Pre: arbol fue creado.
  */
-void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
+void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *),
+                  void *extra);
 
 /* ******************************************************************
  *                    ITERADOR EXTERNO
@@ -88,7 +89,7 @@ typedef struct abb_iter abb_iter_t;
 
 /* Crea un iterador externo del TDA ABB.
  * Pre: arbol fue creado.
- * Post: Devuelve un iterador de arbol apuntando al nodo con menor valor 
+ * Post: Devuelve un iterador de arbol apuntando al nodo con menor valor
  * que se encuentra en el arbol.
  */
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol);
@@ -100,7 +101,7 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol);
  */
 bool abb_iter_in_avanzar(abb_iter_t *iter);
 
-/* Devuelve el valor de la clave del nodo actual. Devuelve 
+/* Devuelve el valor de la clave del nodo actual. Devuelve
  * NULL en caso de que actual lo sea.
  * Pre: iter fue creado.
  */
@@ -112,10 +113,17 @@ const char *abb_iter_in_ver_actual(const abb_iter_t *iter);
  */
 bool abb_iter_in_al_final(const abb_iter_t *iter);
 
+/* El iterador avanza al elemento con clave mayor próxima.
+ * Devuelve true si pudo avanzar, false caso contrario.
+ * Pre: iter fue creado.
+ * Post: avanza al siguiente elemento.
+ */
+bool abb_iter_in_avanzar_hasta(const char *clave);
+
 /* Destruye el iterador.
  * Pre: iter fue creado.
  */
-void abb_iter_in_destruir(abb_iter_t* iter);
+void abb_iter_in_destruir(abb_iter_t *iter);
 
 /* *****************************************************************
  *                      PRUEBAS UNITARIAS
