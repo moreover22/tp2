@@ -248,16 +248,16 @@ int vuelos_prioridad_cmp(const void *a, const void *b) {
   int prioridad2 = atoi(datos_vuelo2[VPC_PRIORDAD]);
   char *num_vuelo1 = datos_vuelo1[VPC_NUM_VUELO];
   char *num_vuelo2 = datos_vuelo2[VPC_NUM_VUELO];
+  int resultado = prioridad2 - prioridad1;
+  if (resultado == 0)
+    resultado = strcmp(num_vuelo2, num_vuelo1);
   free_strv(datos_vuelo1);
   free_strv(datos_vuelo2);
-  int diff_prioridad = prioridad2 - prioridad1;
-  if (diff_prioridad == 0)
-    return strcmp(num_vuelo2, num_vuelo1);
-  return diff_prioridad;
+  return resultado;
 }
 
 char *generar_elemento_heap(char *prioridad, char *numero_vuelo) {
-  size_t lng_clave = strlen(prioridad) + strlen(numero_vuelo) + 4;
+  size_t lng_clave = strlen(prioridad) + strlen(numero_vuelo) + 10;
   char *clave = malloc(lng_clave * sizeof(char));
   sprintf(clave, "%s %c %s", prioridad, CLAVE_SEP, numero_vuelo);
   return clave;
@@ -283,27 +283,23 @@ bool _prioridad_vuelos(vuelos_t *vuelos, int cant_vuelos) {
     char *elemento_heap =
         generar_elemento_heap(vuelo->prioridad, vuelo->numero);
 
-    printf("%s\n", elemento_heap);
     heap_encolar(vuelos_mayor_prioridad, elemento_heap);
-    //  free(clave);
     hash_iter_avanzar(iter);
   }
-  // hash_iter_avanzar(iter);
 
   char *vuelo_menor_prioridad = (char *)heap_ver_max(vuelos_mayor_prioridad);
   while (!hash_iter_al_final(iter)) {
-    printf("Menor prioridad %s\n", vuelo_menor_prioridad);
-
     clave = (char *)hash_iter_ver_actual(iter);
     vuelo = (vuelo_t *)hash_obtener(vuelos->hash_vuelos, clave);
     char *vuelo_nuevo =
         (char *)generar_elemento_heap(vuelo->prioridad, vuelo->numero);
 
     if (vuelos_prioridad_cmp(vuelo_nuevo, vuelo_menor_prioridad) < 0) {
-      heap_desencolar(vuelos_mayor_prioridad);
+      free(heap_desencolar(vuelos_mayor_prioridad));
       heap_encolar(vuelos_mayor_prioridad, vuelo_nuevo);
       vuelo_menor_prioridad = (char *)heap_ver_max(vuelos_mayor_prioridad);
     }
+    // free(vuelo_nuevo);
     hash_iter_avanzar(iter);
   }
 
@@ -318,9 +314,11 @@ bool _prioridad_vuelos(vuelos_t *vuelos, int cant_vuelos) {
 
   for (int i = 0; i < cantidad_vuelos; i++) {
     printf("%s\n", vuelos_prioritarios[i]);
+    free(vuelos_prioritarios[i]);
   }
 
   heap_destruir(vuelos_mayor_prioridad, free);
+  free(vuelos_prioritarios);
   return true;
 }
 
