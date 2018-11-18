@@ -14,19 +14,19 @@ typedef struct elemento {
   estado_t estado;
 } elemento_t;
 
-typedef struct hash {
+struct hash {
   size_t cantidad;
   size_t capacidad;
   size_t borrados;
   elemento_t *tabla;
   hash_destruir_dato_t funcion_destruir;
-} hash_t;
+};
 
-typedef struct hash_iter {
+struct hash_iter {
   const hash_t *hash;
   elemento_t *actual;
   size_t posicion;
-} hash_iter_t;
+};
 
 /*
  * Dado una cadena de caracteres,

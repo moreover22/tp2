@@ -12,19 +12,26 @@
 #define ERROR -1
 
 typedef bool (*comando_t)(vuelos_t *, char **, size_t);
+
+typedef struct func {
+  comando_t *comando;
+} func_t;
 /* ******************************************************************
  *                        PROGRAMA PRINCIPAL
  * *****************************************************************/
+comando_t obtener_comando(char *comando) {
+  const char *NOMBRE_COMANDO[] = {"agregar_archivo", "ver_tablero",
+                                  "info_vuelo", "prioridad_vuelos", "borrar"};
+  comando_t FUNCION_COMANDO[] = {agregar_archivo, ver_tablero, info_vuelo,
+                                 prioridad_vuelos, borrar};
+  const size_t CANTIDAD_COMANDOS = 5;
 
-hash_t *iniciar_operaciones(const char *nombre_comando[],
-                            const comando_t *funcion_comando,
-                            size_t cantidad_comandos) {
-  hash_t *operaciones = hash_crear(NULL);
-  if (!operaciones)
-    return NULL;
-  for (int i = 0; i < cantidad_comandos; i++)
-    hash_guardar(operaciones, nombre_comando[i], funcion_comando[i]);
-  return operaciones;
+  for (int i = 0; i < CANTIDAD_COMANDOS; i++) {
+    if (strcmp(comando, NOMBRE_COMANDO[i]) != 0)
+      continue;
+    return FUNCION_COMANDO[i];
+  }
+  return NULL;
 }
 
 char **slice(char *arr[], int inicio, int fin) {
@@ -48,12 +55,12 @@ void free_args(char *args[]) {
   free(args);
 }
 
-bool ejecutar(vuelos_t *vuelos, hash_t *operaciones, char *entrada[]) {
+bool ejecutar(vuelos_t *vuelos, char *entrada[]) {
   char *comando = entrada[CMD];
   size_t len = len_entrada(entrada);
   char **args = slice(entrada, 1, (int)len);
 
-  comando_t funcion = hash_obtener(operaciones, comando);
+  comando_t funcion = obtener_comando(comando);
   bool ok = false;
   if (funcion)
     ok = funcion(vuelos, args, len - 1);
@@ -62,24 +69,9 @@ bool ejecutar(vuelos_t *vuelos, hash_t *operaciones, char *entrada[]) {
 }
 
 int main(void) {
-
-  const char *NOMBRE_COMANDO[] = {"agregar_archivo", "ver_tablero",
-                                  "info_vuelo", "prioridad_vuelos", "borrar"};
-  const comando_t FUNCION_COMANDO[] = {agregar_archivo, ver_tablero, info_vuelo,
-                                       prioridad_vuelos, borrar};
-  const size_t CANTIDAD_COMANDOS = 5;
-
-  hash_t *operaciones =
-      iniciar_operaciones(NOMBRE_COMANDO, FUNCION_COMANDO, CANTIDAD_COMANDOS);
-
-  if (!operaciones)
-    return ERROR;
   vuelos_t *vuelos = iniciar_vuelos();
-  if (!vuelos) {
-    hash_destruir(operaciones);
+  if (!vuelos)
     return ERROR;
-  }
-
   char *linea = NULL;
   size_t tam = 0;
   ssize_t len = 0;
@@ -87,7 +79,7 @@ int main(void) {
   while ((len = getline(&linea, &tam, stdin)) > 0) {
     linea[len - 1] = '\0';
     char **entrada = split(linea, CMD_SEP);
-    if (ejecutar(vuelos, operaciones, entrada))
+    if (ejecutar(vuelos, entrada))
       printf("OK\n");
     else if (*entrada[CMD]) // Evita saltos de linea
       fprintf(stderr, "Error en comando %s\n", entrada[CMD]);
@@ -96,7 +88,6 @@ int main(void) {
 
   free(linea);
 
-  hash_destruir(operaciones);
   finalizar_vuelos(vuelos);
 
   return 0;
