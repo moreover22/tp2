@@ -1,4 +1,8 @@
-agregar_archivo ex.csv
+agregar_archivo files/vuelos-algueiza-parte-01.csv
+agregar_archivo files/vuelos-algueiza-parte-02.csv
+agregar_archivo files/vuelos-algueiza-parte-03.csv
+agregar_archivo files/vuelos-algueiza-parte-04.csv
+agregar_archivo files/vuelos-algueiza-parte-05.csv
 info_vuelo 4608
 info_vuelo 5243
 info_vuelo 5439

@@ -168,17 +168,17 @@ bool _agregar_archivo(vuelos_t *vuelos, const char *nombre_archivo) {
     char *numero_vuelo = datos_vuelo[NUM];
 
     vuelo_t *vuelo = NULL;
+    vuelo = malloc(sizeof(vuelo_t));
+    inicializar_vuelo(datos_vuelo, vuelo);
+
     if (hash_pertenece(hash_vuelos, numero_vuelo)) {
-      vuelo = (vuelo_t *)hash_obtener(hash_vuelos, numero_vuelo);
-      inicializar_vuelo(datos_vuelo, vuelo);
+      destruir_vuelo(hash_borrar(hash_vuelos, numero_vuelo));
     } else {
-      vuelo = malloc(sizeof(vuelo_t));
-      inicializar_vuelo(datos_vuelo, vuelo);
-      hash_guardar(hash_vuelos, numero_vuelo, vuelo);
       char *clave = generar_clave(vuelo->fecha, vuelo->numero);
       abb_guardar(abb_vuelos, clave, NULL);
       free(clave);
     }
+    hash_guardar(hash_vuelos, numero_vuelo, vuelo);
     free_strv(datos_vuelo);
   }
   free(linea);
@@ -298,8 +298,8 @@ bool _prioridad_vuelos(vuelos_t *vuelos, int cant_vuelos) {
       free(heap_desencolar(vuelos_mayor_prioridad));
       heap_encolar(vuelos_mayor_prioridad, vuelo_nuevo);
       vuelo_menor_prioridad = (char *)heap_ver_max(vuelos_mayor_prioridad);
-    }
-    // free(vuelo_nuevo);
+    } else
+      free(vuelo_nuevo);
     hash_iter_avanzar(iter);
   }
 

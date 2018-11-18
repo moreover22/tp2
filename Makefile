@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g -std=c99 -Wall -Wconversion -Wno-sign-conversion -Werror
 VFLAGS = --leak-check=full --track-origins=yes --show-reachable=yes
 
-CFILES = main.c analog.c abb.c hash.c heap.c pila.c pruebas_alumno.c strutil.c testing.c fechautil.c cola.c
+CFILES = main.c analog.c abb.c hash.c heap.c pila.c strutil.c testing.c fechautil.c cola.c
 HFILES = analog.h hash.h heap.h pila.h strutil.h. abb.h testing.h pila.h fechautil.h cola.h
 
 EXEC_S = tp2
