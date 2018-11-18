@@ -35,6 +35,7 @@ enum { B_DESDE, B_HASTA };
 
 #define ASC "asc"
 #define DESC "desc"
+
 struct vuelos {
   hash_t *hash_vuelos;
   abb_t *abb_vuelos;
@@ -62,6 +63,7 @@ int vueloscmp(const void *a, const void *b) {
     return fecha_comp;
   return v_a.numero - v_b.numero;
 }
+
 // ESTA  SIRVE PARA EL ABB
 int abb_vueloscmp(const char *a, const char *b) {
   int resultado;
@@ -107,6 +109,7 @@ vuelos_t *iniciar_vuelos() {
 
   return vuelos;
 }
+
 void finalizar_vuelos(vuelos_t *vuelos) {
   hash_destruir(vuelos->hash_vuelos);
   abb_destruir(vuelos->abb_vuelos);
@@ -207,6 +210,76 @@ bool _ver_tablero(vuelos_t *vuelos, size_t cant_vuelos, const char *modo,
   return true;
 }
 
+
+int _vuelos_prioridad_cmp(const void *a, const void *b){
+	char** datos_vuelo1=split((char*)a,CSV_SEP);
+	char** datos_vuelo2=split((char*)b,CSV_SEP);
+	
+	int prioridad1 = atoi(datos_vuelo1[PRI]);
+	int prioridad2 = atoi(datos_vuelo2[PRI]);
+		
+	if(prioridad1 > prioridad2)return 1;
+	
+	if(prioridad1 < prioridad2)return -1;
+	
+	int num_vuelo1 = atoi(datos_vuelo1[NUM]);
+	int num_vuelo2 = atoi(datos_vuelo2[NUM]);
+
+	if(num_vuelo1 > numvuelo2)return 1;
+	
+	return -1;
+}
+
+bool _prioridad_vuelos(hash_t *vuelos, int cant_vuelos) {
+	
+	heap_t* vuelos_mayor_prioridad=heap_crear(_vuelos_prioridad_cmp);
+	
+	if(!vuelos_mayor_prioridad)return false;
+	
+	hash_iter_t* iter=hash_iter_crear(vuelos);
+	
+	if(!iter) return false;
+	
+	vuelo_t* vuelo_tope=NULL; 
+	
+	for(int i=0;i<cant_vuelos;i++){
+		if(hash_iter_al_final(iter))break;
+		char* clave=hash_iter_ver_actual(iter);
+		vuelo_tope=hash_obtener(hash,clave);
+		heap_encolar(vuelos_mayor_prioridad,);
+		heap_encolar(vuelos_mayor_prioridad,vuelo_tope);
+		hash_iter_avanzar(iter);
+	}
+	
+	while(!hash_iter_al_final(iter)){
+		char* clave=hash_iter_ver_actual(iter);
+		vuelo_t* vuelo=(vuelo_t*)hash_obtener(hash,clave);
+		if(_vuelos_prioridad_cmp()){
+			heap_desencolar(vuelos_mayor_prioridad);
+			heap_encolar(vuelos_mayor_prioridad,vuelo);
+			vuelo_tope=vuelo;
+		}
+	}
+	
+	hash_iter_destruir(iter);
+	size_t cantidad_vuelos=heap_cantidad(vuelos_mayor_prioridad);
+	vuelo_t* vuelos_prioritarios[cantidad_vuelos];
+	
+	for(int i=cantidad_vuelos-1;i>=0;i--){
+		vuelos_prioritarios[i]=(vuelos_t*)heap_desencolar(vuelos_mayor_prioridad);
+	}
+	
+	for(int i=0;i<cantidad_vuelos;i++){
+		mostrar_vuelo(vuelos_prioritarios[i]);
+	}
+	
+	heap_destruir(vuelos_mayor_prioridad,free);
+	
+	printf("ok");
+	
+	return true;
+}
+
 void mostrar_vuelo(vuelo_t *vuelo) {
   char *fecha_hora = fecha_a_str(vuelo->fecha);
   printf("%d %s %s %s %s %d %s %d %d %d\n", vuelo->numero, vuelo->aerolinea,
@@ -223,8 +296,6 @@ bool _info_vuelo(vuelos_t *vuelos, const char *cod_vuelo) {
   mostrar_vuelo(vuelo);
   return true;
 }
-
-bool _prioridad_vuelos(vuelos_t *vuelos, int cant_vuelos) { return true; }
 
 bool _borrar(vuelos_t *vuelos, fecha_t *desde, fecha_t *hasta) {
 
@@ -290,6 +361,24 @@ bool ver_tablero(vuelos_t *vuelos, char **args, size_t argc) {
   free(desde);
   free(hasta);
   return resultado;
+}
+
+
+bool ver_tablero(hash_t *vuelos, int cant_vuelos, const char *modo,
+                 fecha_t desde, fecha_t hasta) {}
+                 
+bool info_vuelo(hash_t *vuelos, const char *cod_vuelo) {
+	vuelo_t *vuelo = (vuelo_t *)hash_obtener(vuelos, cod_vuelo);
+	if (!vuelo)
+		return false;
+	char *fecha_hora = fechaAStr(vuelo->fecha);
+	printf("%d %s %s %s %d %s %d %d %d\n", vuelo->numero, vuelo->aerolinea,
+         vuelo->origen, vuelo->destino, vuelo->numero_cola, vuelo->prioridad,
+         fecha_hora, vuelo->retraso_salida, vuelo->tiempo_vuelo,
+         vuelo->cancelado);
+
+	free(fecha_hora);
+	return false;
 }
 
 bool info_vuelo(vuelos_t *vuelos, char **args, size_t argc) {
