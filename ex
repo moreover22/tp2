@@ -31,3 +31,6 @@ ver_tablero 10 asc 2018-04-01T00:00:00 2020-04-21T00:12:00
 // Limitado al inicio y al final
 ver_tablero 10 asc 2018-04-01T00:00:00 2018-10-30T00:00:00
 ver_tablero 3 asc 2018-04-01T00:00:00 2018-11-03T14:52:09
+
+
+//prioridad_vuelos 3

@@ -28,7 +28,7 @@ hash_t *iniciar_operaciones(const char *nombre_comando[],
 }
 
 char **slice(char *arr[], int inicio, int fin) {
-  char **resultado = malloc(sizeof(char *) * (fin - inicio));
+  char **resultado = calloc((fin - inicio + 1), sizeof(char *));
   for (int i = 0; i < (fin - inicio); i++) {
     resultado[i] = strdup(arr[inicio + i]);
   }
@@ -39,11 +39,11 @@ size_t len_entrada(char **entrada) {
   size_t i;
   for (i = 0; entrada && entrada[i]; i++)
     ;
-  return i;
+  return i++;
 }
 
 void free_args(char *args[]) {
-  for (int i = 0; args && args[i]; i++)
+  for (int i = 0; args[i]; i++)
     free(args[i]);
   free(args);
 }
@@ -54,10 +54,11 @@ bool ejecutar(vuelos_t *vuelos, hash_t *operaciones, char *entrada[]) {
   char **args = slice(entrada, 1, (int)len);
 
   comando_t funcion = hash_obtener(operaciones, comando);
-  if (!funcion)
-    return false;
-  return funcion(vuelos, args, len - 1);
+  bool ok = false;
+  if (funcion)
+    ok = funcion(vuelos, args, len - 1);
   free_args(args);
+  return ok;
 }
 
 int main(void) {
@@ -88,7 +89,7 @@ int main(void) {
     char **entrada = split(linea, CMD_SEP);
     if (ejecutar(vuelos, operaciones, entrada))
       printf("OK\n");
-    else
+    else if (*entrada[CMD]) // Evita saltos de linea
       fprintf(stderr, "Error en comando %s\n", entrada[CMD]);
     free_strv(entrada);
   }
