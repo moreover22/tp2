@@ -42,12 +42,12 @@ struct vuelos {
 };
 
 typedef struct vuelo {
-  int numero;
+  char* numero;
   char *aerolinea;
   char *origen;
   char *destino;
   char *numero_cola;
-  int prioridad;
+  char* prioridad;
   fecha_t *fecha;
   int retraso_salida;
   int tiempo_vuelo;
@@ -117,12 +117,12 @@ void finalizar_vuelos(vuelos_t *vuelos) {
 }
 
 void inicializar_vuelo(char **datos, vuelo_t *vuelo) {
-  vuelo->numero = atoi(datos[NUM]);
+  vuelo->numero = datos[NUM];
   vuelo->aerolinea = datos[AER];
   vuelo->origen = datos[ORI];
   vuelo->destino = datos[DES];
   vuelo->numero_cola = datos[TAI];
-  vuelo->prioridad = atoi(datos[PRI]);
+  vuelo->prioridad = datos[PRI];
   vuelo->fecha = fecha_crear(datos[FEC]);
   vuelo->retraso_salida = atoi(datos[DEP]);
   vuelo->tiempo_vuelo = atoi(datos[TIE]);
@@ -215,19 +215,26 @@ int _vuelos_prioridad_cmp(const void *a, const void *b){
 	char** datos_vuelo1=split((char*)a,CSV_SEP);
 	char** datos_vuelo2=split((char*)b,CSV_SEP);
 	
-	int prioridad1 = atoi(datos_vuelo1[PRI]);
-	int prioridad2 = atoi(datos_vuelo2[PRI]);
+	int prioridad1 = atoi(datos_vuelo1[0]);
+	int prioridad2 = atoi(datos_vuelo2[0]);
 		
-	if(prioridad1 > prioridad2)return 1;
+	if(prioridad1 > prioridad2)return -1;
 	
-	if(prioridad1 < prioridad2)return -1;
+	if(prioridad1 < prioridad2)return 1;
 	
-	int num_vuelo1 = atoi(datos_vuelo1[NUM]);
-	int num_vuelo2 = atoi(datos_vuelo2[NUM]);
+	int num_vuelo1 = atoi(datos_vuelo1[1]);
+	int num_vuelo2 = atoi(datos_vuelo2[1]);
 
-	if(num_vuelo1 > numvuelo2)return 1;
+	if(num_vuelo1 > numvuelo2)return -1;
 	
-	return -1;
+	return 1;
+}
+
+char* _generar_elemento_heap(char* prioridad,char* numero_vuelo) {
+	size_t lng_clave=strlen(prioridad)+strlen(numero_vuelo)+2;
+	char *clave=(char*)malloc(lng_clave);
+	sprintf(clave,"%s%c%s",prioridad,CSV_SEP,numero_vuelo);
+	return clave;
 }
 
 bool _prioridad_vuelos(hash_t *vuelos, int cant_vuelos) {
@@ -240,24 +247,31 @@ bool _prioridad_vuelos(hash_t *vuelos, int cant_vuelos) {
 	
 	if(!iter) return false;
 	
-	vuelo_t* vuelo_tope=NULL; 
+	vuelo_t* vuelo=NULL; 
+	char* clave=NULL;
 	
 	for(int i=0;i<cant_vuelos;i++){
 		if(hash_iter_al_final(iter))break;
-		char* clave=hash_iter_ver_actual(iter);
-		vuelo_tope=hash_obtener(hash,clave);
-		heap_encolar(vuelos_mayor_prioridad,);
-		heap_encolar(vuelos_mayor_prioridad,vuelo_tope);
+		clave=(char*)hash_iter_ver_actual(iter);
+		vuelo=(vuelo_t*)hash_obtener(hash,clave);
+		heap_encolar(vuelos_mayor_prioridad,_generar_elemento_heap(vuelo->prioridad,vuelo->numero);
 		hash_iter_avanzar(iter);
 	}
 	
+	char* vuelo_menor_prioridad=(char*)heap_ver_max(vuelos_mayor_prioridad);
+	
 	while(!hash_iter_al_final(iter)){
-		char* clave=hash_iter_ver_actual(iter);
-		vuelo_t* vuelo=(vuelo_t*)hash_obtener(hash,clave);
-		if(_vuelos_prioridad_cmp()){
+		
+		clave=hash_iter_ver_actual(iter);
+		
+		vuelo=(vuelo_t*)hash_obtener(hash,clave);
+		
+		char* vuelo_nuevo=(char*)_generar_elemento_heap(vuelo->prioridad,vuelo->numero);
+		
+		if(_vuelos_prioridad_cmp(vuelo_nuevo,vuelo_menor_prioridad)<0){
 			heap_desencolar(vuelos_mayor_prioridad);
-			heap_encolar(vuelos_mayor_prioridad,vuelo);
-			vuelo_tope=vuelo;
+			heap_encolar(vuelos_mayor_prioridad,vuelo_nuevo);
+			vuelo_menor_prioridad=(char*)heap_ver_max(vuelos_mayor_prioridad);
 		}
 	}
 	
