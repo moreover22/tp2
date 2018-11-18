@@ -5,34 +5,38 @@
 #include "hash.h"
 #include <stdbool.h>
 #include <stddef.h>
-/*
- *
- */
-hash_t *iniciar_vuelos();
-/*
- *
- */
-bool agregar_archivo(hash_t *vuelos, const char *nombre_archivo);
+
+typedef struct vuelos vuelos_t;
 
 /*
  *
  */
-// Creo que tiene que recibir el hash de vuelos también.
-bool ver_tablero(hash_t *vuelos, int cant_vuelos, const char *modo,
-                 fecha_t desde, fecha_t hasta);
+vuelos_t *iniciar_vuelos();
 /*
  *
  */
-// idem ver_tablero
-bool info_vuelo(hash_t *vuelos, const char *cod_vuelo);
+void finalizar_vuelos(vuelos_t *vuelos);
 /*
  *
  */
-bool prioridad_vuelos(hash_t *vuelos, int cant_vuelos);
+bool agregar_archivo(vuelos_t *vuelos, char **args, size_t argc);
+
 /*
  *
  */
-bool borrar(hash_t *vuelos, fecha_t desde, decha_t hasta);
+bool ver_tablero(vuelos_t *vuelos, char **args, size_t argc);
+/*
+ *
+ */
+bool info_vuelo(vuelos_t *vuelos, char **args, size_t argc);
+/*
+ *
+ */
+bool prioridad_vuelos(vuelos_t *vuelos, char **args, size_t argc);
+/*
+ *
+ */
+bool borrar(vuelos_t *vuelos, char **args, size_t argc);
 /*
  *
  */

@@ -1,6 +1,7 @@
 #ifndef STRUTIL_H
 #define STRUTIL_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 /*
@@ -12,7 +13,7 @@
  * arreglo devuelto. La función devuelve NULL si falló alguna llamada a
  * malloc(), o si ‘sep’ es '\0'.
  */
-char** split(const char* str, char sep);
+char **split(const char *str, char sep);
 
 /*
  * Devuelve una cadena, allocada dinámicamente, resultado de unir todas las
@@ -21,14 +22,19 @@ char** split(const char* str, char sep);
  * Quien llama a la función toma responsabilidad de la memoria dinámica de la
  * cadena devuelta. La función devuelve NULL si no se pudo allocar memoria.
  */
-char* join(char** strv, char sep);
+char *join(char **strv, char sep);
 
 /*
  * Libera un arreglo dinámico de cadenas, y todas las cadenas que contiene.
  */
-void free_strv(char* strv[]);
+
+void free_strv(char *strv[]);
+/*
+ * Dada una cadena de caracteres,
+ * devuelve true si es un número,
+ * false caso contrario.
+ */
+bool es_numero(char *str);
 
 void pruebas_tp1_alumno();
-#endif  // STRUTIL_H
-
-
+#endif // STRUTIL_H

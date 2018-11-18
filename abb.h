@@ -93,6 +93,13 @@ typedef struct abb_iter abb_iter_t;
  * que se encuentra en el arbol.
  */
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol);
+/* Constructor alternativo de iterador externo in order.
+ * Pre: arbol fue creado.
+ * Post: Devuelve un iterador de arbol apuntando al nodo
+ * más cercano (mayor o igual) a clave.
+ */
+// [Tested]
+abb_iter_t *abb_iter_in_crear_desde(const abb_t *arbol, const char *clave);
 
 /* El iterador avanza al elemento con clave mayor próxima.
  * Devuelve true si pudo avanzar, false caso contrario.
@@ -112,13 +119,6 @@ const char *abb_iter_in_ver_actual(const abb_iter_t *iter);
  * Pre: iter fue creado
  */
 bool abb_iter_in_al_final(const abb_iter_t *iter);
-
-/* El iterador avanza al elemento con clave mayor próxima.
- * Devuelve true si pudo avanzar, false caso contrario.
- * Pre: iter fue creado.
- * Post: avanza al siguiente elemento.
- */
-bool abb_iter_in_avanzar_hasta(const char *clave);
 
 /* Destruye el iterador.
  * Pre: iter fue creado.
