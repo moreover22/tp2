@@ -2,9 +2,11 @@
 #include "strutil.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define L_FECHA 11 // Longitud Fecha: 4 + 2 + 2 + 2(separadores) + 1
 #define L_HORA 9   // Longitud Hora: 2 + 2 + 2 + 2(separadores) + 1
 #define L_FECHA_HORA (L_FECHA + L_HORA + 1)
+#define VALID_FECHA 19
 #define FECHA_HORA_SEP 'T'
 #define FECHA_SEP '-'
 #define HORA_SEP ':'
@@ -89,7 +91,7 @@ char *fecha_a_str(fecha_t *fecha) {
 }
 
 // Hacerlo bien jajaja.
-bool fecha_valida(const char *str) { return true; }
+bool fecha_valida(const char *str) { return strlen(str) == VALID_FECHA; }
 
 void fecha_sumar_segundos(fecha_t *fecha, int segundos) {
   fecha->S = fecha->S + segundos;

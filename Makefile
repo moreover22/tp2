@@ -42,6 +42,6 @@ entregar: build
 	$(MAKE) run; test $$? -eq 0
 	$(MAKE) valgrind; test $$? -eq 0
 	$(MAKE) clean
-	zip $(GRUPO).zip $(CFILES) $(HFILES)
+	zip $(GRUPO).zip $(CFILES) $(HFILES) deps.mk
 	@echo "Perfecto, no falla ni pierde memoria"
 	@echo "El zip esta listo para entregar"

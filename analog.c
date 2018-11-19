@@ -6,6 +6,7 @@
 #include "fechautil.h"
 #include "hash.h"
 #include "heap.h"
+#include "pila.h"
 #include "strutil.h"
 
 #include <stdio.h>
@@ -36,9 +37,9 @@ enum { B_DESDE, B_HASTA };
 // Constante para heap_comparar
 #define VPC_PRIORDAD 0
 #define VPC_NUM_VUELO 2
-
 #define ASC "asc"
 #define DESC "desc"
+
 struct vuelos {
   hash_t *hash_vuelos;
   abb_t *abb_vuelos;
@@ -52,22 +53,11 @@ typedef struct vuelo {
   char *numero_cola;
   char *prioridad;
   fecha_t *fecha;
-  int retraso_salida;
-  int tiempo_vuelo;
-  int cancelado;
+  char *retraso_salida;
+  char *tiempo_vuelo;
+  char *cancelado;
 } vuelo_t;
 
-// ESTA  SIRVE PARA EL HEAP DE PRIORIDAD
-int vueloscmp(const void *a, const void *b) {
-  vuelo_t *v_a = (vuelo_t *)a;
-  vuelo_t *v_b = (vuelo_t *)b;
-
-  int fecha_comp = fechacmp(v_a->fecha, v_b->fecha);
-  if (fecha_comp != 0)
-    return fecha_comp;
-  return atoi(v_a->numero) - atoi(v_b->numero);
-}
-// ESTA  SIRVE PARA EL ABB
 int abb_vueloscmp(const char *a, const char *b) {
   int resultado;
   // Clave = "fecha - codigo_vuelo"
@@ -81,11 +71,9 @@ int abb_vueloscmp(const char *a, const char *b) {
   int fecha_comp = fechacmp(f_a, f_b);
   free(f_a);
   free(f_b);
-  int cod_vuelo_a = atoi(v_a[AVC_COD_VUELO]);
-  int cod_vuelo_b = atoi(v_b[AVC_COD_VUELO]);
   resultado = fecha_comp;
   if (resultado == 0)
-    resultado = cod_vuelo_a - cod_vuelo_b;
+    resultado = strcmp(v_a[AVC_COD_VUELO], v_b[AVC_COD_VUELO]);
   free_strv(v_a);
   free_strv(v_b);
   return resultado;
@@ -100,6 +88,9 @@ void destruir_vuelo(void *dato) {
   free(vuelo->destino);
   free(vuelo->numero_cola);
   free(vuelo->prioridad);
+  free(vuelo->retraso_salida);
+  free(vuelo->tiempo_vuelo);
+  free(vuelo->cancelado);
   free(vuelo);
 }
 
@@ -118,12 +109,12 @@ vuelos_t *iniciar_vuelos() {
     hash_destruir(hash_vuelos);
     return NULL;
   }
-
   vuelos->hash_vuelos = hash_vuelos;
   vuelos->abb_vuelos = abb_vuelos;
 
   return vuelos;
 }
+
 void finalizar_vuelos(vuelos_t *vuelos) {
   hash_destruir(vuelos->hash_vuelos);
   abb_destruir(vuelos->abb_vuelos);
@@ -138,9 +129,9 @@ void inicializar_vuelo(char **datos, vuelo_t *vuelo) {
   vuelo->numero_cola = strdup(datos[TAI]);
   vuelo->prioridad = strdup(datos[PRI]);
   vuelo->fecha = fecha_crear(datos[FEC]);
-  vuelo->retraso_salida = atoi(datos[DEP]);
-  vuelo->tiempo_vuelo = atoi(datos[TIE]);
-  vuelo->cancelado = atoi(datos[CAN]);
+  vuelo->retraso_salida = strdup(datos[DEP]);
+  vuelo->tiempo_vuelo = strdup(datos[TIE]);
+  vuelo->cancelado = strdup(datos[CAN]);
 }
 
 char *generar_clave(fecha_t *fecha, char *numero_vuelo) {
@@ -167,17 +158,20 @@ bool _agregar_archivo(vuelos_t *vuelos, const char *nombre_archivo) {
     char **datos_vuelo = split(linea, CSV_SEP);
     char *numero_vuelo = datos_vuelo[NUM];
 
-    vuelo_t *vuelo = NULL;
-    vuelo = malloc(sizeof(vuelo_t));
+    vuelo_t *vuelo = malloc(sizeof(vuelo_t));
     inicializar_vuelo(datos_vuelo, vuelo);
+    char *clave = generar_clave(vuelo->fecha, numero_vuelo);
 
     if (hash_pertenece(hash_vuelos, numero_vuelo)) {
-      destruir_vuelo(hash_borrar(hash_vuelos, numero_vuelo));
-    } else {
-      char *clave = generar_clave(vuelo->fecha, vuelo->numero);
-      abb_guardar(abb_vuelos, clave, NULL);
-      free(clave);
+      vuelo_t *vuelo_borrado = hash_borrar(hash_vuelos, numero_vuelo);
+      char *clave_borrado =
+          generar_clave(vuelo_borrado->fecha, vuelo_borrado->numero);
+      free(abb_borrar(abb_vuelos, clave_borrado));
+      destruir_vuelo(vuelo_borrado);
+      free(clave_borrado);
     }
+    abb_guardar(abb_vuelos, clave, NULL);
+    free(clave);
     hash_guardar(hash_vuelos, numero_vuelo, vuelo);
     free_strv(datos_vuelo);
   }
@@ -185,10 +179,21 @@ bool _agregar_archivo(vuelos_t *vuelos, const char *nombre_archivo) {
   fclose(archivo_vuelos);
   return true;
 }
+void invertir_cola(cola_t *cola) {
+  pila_t *pila_aux = pila_crear();
+  while (!cola_esta_vacia(cola))
+    pila_apilar(pila_aux, cola_desencolar(cola));
+  while (!pila_esta_vacia(pila_aux))
+    cola_encolar(cola, pila_desapilar(pila_aux));
+  pila_destruir(pila_aux);
+}
 
 bool _ver_tablero(vuelos_t *vuelos, size_t cant_vuelos, const char *modo,
                   fecha_t *desde, fecha_t *hasta) {
-  char **resultado = malloc(sizeof(char *) * cant_vuelos);
+  if (abb_cantidad(vuelos->abb_vuelos) == 0 ||
+      hash_cantidad(vuelos->hash_vuelos) == 0)
+    return true;
+  cola_t *resultado = cola_crear();
   if (!resultado)
     return false;
   // Fecha - 0 (cualquier vuelo)
@@ -200,34 +205,37 @@ bool _ver_tablero(vuelos_t *vuelos, size_t cant_vuelos, const char *modo,
   abb_iter_t *iter_vuelos = abb_iter_in_crear_desde(vuelos->abb_vuelos, clave);
   free(clave);
   int i = 0;
-  while (!abb_iter_in_al_final(iter_vuelos) && i < cant_vuelos) {
+  while (!abb_iter_in_al_final(iter_vuelos)) {
     const char *clave_actual = abb_iter_in_ver_actual(iter_vuelos);
     if (abb_vueloscmp(clave_actual, clave_limite) >= 0)
       break;
-    resultado[i] = strdup(clave_actual);
-    abb_iter_in_avanzar(iter_vuelos);
+    cola_encolar(resultado, strdup(clave_actual));
     i++;
+    if (strcmp(modo, ASC) == 0 && i >= cant_vuelos)
+      break;
+    if (i > cant_vuelos)
+      free(cola_desencolar(resultado));
+    abb_iter_in_avanzar(iter_vuelos);
   }
   free(clave_limite);
   abb_iter_in_destruir(iter_vuelos);
 
-  bool descendente = strcmp(modo, DESC) == 0;
-  for (int j = 0; j < i; j++) {
-    int index;
-    index = j;
-    if (descendente)
-      index = i - j - 1;
-    printf("%s\n", resultado[index]);
-    free(resultado[index]);
+  if (strcmp(modo, DESC) == 0)
+    invertir_cola(resultado);
+
+  while (!cola_esta_vacia(resultado)) {
+    char *str_res = cola_desencolar(resultado);
+    printf("%s\n", str_res);
+    free(str_res);
   }
-  free(resultado);
+  cola_destruir(resultado, NULL);
 
   return true;
 }
 
 void mostrar_vuelo(vuelo_t *vuelo) {
   char *fecha_hora = fecha_a_str(vuelo->fecha);
-  printf("%s %s %s %s %s %s %s %d %d %d\n", vuelo->numero, vuelo->aerolinea,
+  printf("%s %s %s %s %s %s %s %s %s %s\n", vuelo->numero, vuelo->aerolinea,
          vuelo->origen, vuelo->destino, vuelo->numero_cola, vuelo->prioridad,
          fecha_hora, vuelo->retraso_salida, vuelo->tiempo_vuelo,
          vuelo->cancelado);
@@ -250,7 +258,7 @@ int vuelos_prioridad_cmp(const void *a, const void *b) {
   char *num_vuelo2 = datos_vuelo2[VPC_NUM_VUELO];
   int resultado = prioridad2 - prioridad1;
   if (resultado == 0)
-    resultado = strcmp(num_vuelo2, num_vuelo1);
+    resultado = strcmp(num_vuelo1, num_vuelo2);
   free_strv(datos_vuelo1);
   free_strv(datos_vuelo2);
   return resultado;
@@ -323,7 +331,6 @@ bool _prioridad_vuelos(vuelos_t *vuelos, int cant_vuelos) {
 }
 
 bool _borrar(vuelos_t *vuelos, fecha_t *desde, fecha_t *hasta) {
-
   cola_t *resultado = cola_crear();
   if (!resultado)
     return false;
@@ -354,8 +361,8 @@ bool _borrar(vuelos_t *vuelos, fecha_t *desde, fecha_t *hasta) {
     abb_borrar(vuelos->abb_vuelos, actual);
     vuelo_t *vuelo_borrado =
         hash_borrar(vuelos->hash_vuelos, actual_v[AVC_COD_VUELO]);
+    mostrar_vuelo(vuelo_borrado);
     destruir_vuelo(vuelo_borrado);
-    printf("%s\n", actual);
     free(actual);
     free_strv(actual_v);
   }
@@ -374,9 +381,12 @@ bool agregar_archivo(vuelos_t *vuelos, char **args, size_t argc) {
 }
 
 bool ver_tablero(vuelos_t *vuelos, char **args, size_t argc) {
+
   if (argc != ARGS_VER_TABLERO)
     return false;
   size_t cant_vuelos = atoi(args[VT_CANT_VUELOS]);
+  if (cant_vuelos <= 0)
+    return false;
   char *modo = args[VT_MODO];
   if (strcmp(modo, DESC) != 0 && strcmp(modo, ASC) != 0)
     return false;
@@ -401,7 +411,7 @@ bool prioridad_vuelos(vuelos_t *vuelos, char **args, size_t argc) {
   if (argc != ARGS_PRIORIDAD_VUELO)
     return false;
   int prioridad = atoi(args[PV_PRIORIDAD]);
-  return _prioridad_vuelos(vuelos, prioridad);
+  return (prioridad > 0) && _prioridad_vuelos(vuelos, prioridad);
 }
 
 bool borrar(vuelos_t *vuelos, char **args, size_t argc) {

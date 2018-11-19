@@ -25,7 +25,6 @@ comando_t obtener_comando(char *comando) {
   comando_t FUNCION_COMANDO[] = {agregar_archivo, ver_tablero, info_vuelo,
                                  prioridad_vuelos, borrar};
   const size_t CANTIDAD_COMANDOS = 5;
-
   for (int i = 0; i < CANTIDAD_COMANDOS; i++) {
     if (strcmp(comando, NOMBRE_COMANDO[i]) != 0)
       continue;
@@ -44,8 +43,9 @@ char **slice(char *arr[], int inicio, int fin) {
 
 size_t len_entrada(char **entrada) {
   size_t i;
-  for (i = 0; entrada && entrada[i]; i++)
-    ;
+  for (i = 0; entrada[i]; i++)
+    if (strlen(entrada[i]) == 0)
+      return 0;
   return i++;
 }
 
@@ -58,6 +58,8 @@ void free_args(char *args[]) {
 bool ejecutar(vuelos_t *vuelos, char *entrada[]) {
   char *comando = entrada[CMD];
   size_t len = len_entrada(entrada);
+  if (len == 0)
+    return false;
   char **args = slice(entrada, 1, (int)len);
 
   comando_t funcion = obtener_comando(comando);
@@ -77,6 +79,7 @@ int main(void) {
   ssize_t len = 0;
 
   while ((len = getline(&linea, &tam, stdin)) > 0) {
+
     linea[len - 1] = '\0';
     char **entrada = split(linea, CMD_SEP);
     if (ejecutar(vuelos, entrada))
