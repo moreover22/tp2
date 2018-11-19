@@ -6,6 +6,7 @@
 #define L_FECHA 11 // Longitud Fecha: 4 + 2 + 2 + 2(separadores) + 1
 #define L_HORA 9   // Longitud Hora: 2 + 2 + 2 + 2(separadores) + 1
 #define L_FECHA_HORA (L_FECHA + L_HORA + 1)
+#define L_FECHA_S 10
 #define VALID_FECHA 19
 #define FECHA_HORA_SEP 'T'
 #define FECHA_SEP '-'
@@ -33,17 +34,21 @@ fecha_t *fecha_crear(const char *str) {
 
   char **fecha_hora = split(str, FECHA_HORA_SEP);
   char **fecha = split(fecha_hora[FECHA], FECHA_SEP);
-  char **hora = split(fecha_hora[HORA], HORA_SEP);
 
   fecha_r->d = atoi(fecha[DIA]);
   fecha_r->m = atoi(fecha[MES]);
   fecha_r->a = atoi(fecha[ANIO]);
 
-  fecha_r->H = atoi(hora[HH]);
-  fecha_r->M = atoi(hora[MM]);
-  fecha_r->S = atoi(hora[SS]);
-
-  free_strv(hora);
+  fecha_r->H = 0;
+  fecha_r->M = 0;
+  fecha_r->S = 0;
+  if (strlen(str) != L_FECHA_S) {
+    char **hora = split(fecha_hora[HORA], HORA_SEP);
+    fecha_r->H = atoi(hora[HH]);
+    fecha_r->M = atoi(hora[MM]);
+    fecha_r->S = atoi(hora[SS]);
+    free_strv(hora);
+  }
   free_strv(fecha);
   free_strv(fecha_hora);
 
@@ -91,7 +96,9 @@ char *fecha_a_str(fecha_t *fecha) {
 }
 
 // Hacerlo bien jajaja.
-bool fecha_valida(const char *str) { return strlen(str) == VALID_FECHA; }
+bool fecha_valida(const char *str) {
+  return strlen(str) == VALID_FECHA || strlen(str) == L_FECHA_S;
+}
 
 void fecha_sumar_segundos(fecha_t *fecha, int segundos) {
   fecha->S = fecha->S + segundos;
