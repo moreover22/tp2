@@ -54,7 +54,6 @@ fecha_t *fecha_crear(const char *str) {
 
   return fecha_r;
 }
-// analogo strcmp. DOCUMENTAR BIEN
 int fechacmp(const fecha_t *a, const fecha_t *b) {
   // Me fijo primero la fecha
   int dif_anio = a->a - b->a;
@@ -82,7 +81,6 @@ int fechacmp(const fecha_t *a, const fecha_t *b) {
   return dif_seg;
 }
 
-// Creo que hay que devolverlo en Mem dinamica
 char *fecha_a_str(fecha_t *fecha) {
   char fecha_s[L_FECHA];
   sprintf(fecha_s, "%04d%c%02d%c%02d", fecha->a, FECHA_SEP, fecha->m, FECHA_SEP,
@@ -95,7 +93,6 @@ char *fecha_a_str(fecha_t *fecha) {
   return fecha_hora;
 }
 
-// Hacerlo bien jajaja.
 bool fecha_valida(const char *str) {
   return strlen(str) == VALID_FECHA || strlen(str) == L_FECHA_S;
 }

@@ -19,6 +19,10 @@ typedef struct func {
 /* ******************************************************************
  *                        PROGRAMA PRINCIPAL
  * *****************************************************************/
+/* Dado una cadena de caracteres, la funcion devuelve un puntero
+ * a la función correspondiente con ese comando.
+ * En caso de que el comando sea inválido, devuelve NULL
+ */
 comando_t obtener_comando(char *comando) {
   const char *NOMBRE_COMANDO[] = {"agregar_archivo", "ver_tablero",
                                   "info_vuelo", "prioridad_vuelos", "borrar"};
@@ -32,7 +36,11 @@ comando_t obtener_comando(char *comando) {
   }
   return NULL;
 }
-
+/* Dado un array de cadenas de caracteres, devuelve
+ * un nuevo array que tiene los mismos elementos del
+ * array original desde inicio hasta final.
+ * El array debe ser liberado manualmente.
+ */
 char **slice(char *arr[], int inicio, int fin) {
   char **resultado = calloc((fin - inicio + 1), sizeof(char *));
   for (int i = 0; i < (fin - inicio); i++) {
@@ -40,7 +48,9 @@ char **slice(char *arr[], int inicio, int fin) {
   }
   return resultado;
 }
-
+/* Dado un vector de cadenas de caracteres, con el último elemento NULL
+ * la función devuelve la longitud del vector hasta NULL.
+ */
 size_t len_entrada(char **entrada) {
   size_t i;
   for (i = 0; entrada[i]; i++)
@@ -48,13 +58,22 @@ size_t len_entrada(char **entrada) {
       return 0;
   return i++;
 }
-
+/* Dado un array de cadenas, libera la memoria de
+ * cada una de las cadenas y del array en sí.
+ */
 void free_args(char *args[]) {
   for (int i = 0; args[i]; i++)
     free(args[i]);
   free(args);
 }
 
+/* Dado un puntero a la estructura de vuelos,
+ * previamente inicializado, y una entrada de
+ * usuario (vector de cadena de caracteres cuyo
+ * primer elemento es el comando a ejecutar)
+ * Ejecuta el comando y devuelve True si pudo
+ * ejecutar el comando correctamente.
+ */
 bool ejecutar(vuelos_t *vuelos, char *entrada[]) {
   char *comando = entrada[CMD];
   size_t len = len_entrada(entrada);
@@ -70,6 +89,8 @@ bool ejecutar(vuelos_t *vuelos, char *entrada[]) {
   return ok;
 }
 
+/* Función principal del programa.
+ */
 int main(void) {
   vuelos_t *vuelos = iniciar_vuelos();
   if (!vuelos)

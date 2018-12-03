@@ -58,8 +58,6 @@ typedef struct vuelo {
 
 int abb_vueloscmp(const char *a, const char *b) {
   int resultado;
-  // Clave = "fecha - codigo_vuelo"
-  // split(Clave, ' ') -> ["fecha", "-", "codigo_vuelo", NULL]
 
   char **v_a = split(a, ' ');
   char **v_b = split(b, ' ');
@@ -132,6 +130,11 @@ void inicializar_vuelo(char **datos, vuelo_t *vuelo) {
   vuelo->cancelado = strdup(datos[CAN]);
 }
 
+/* Dado una fecha y un numero_vuelo
+ * devuelve una cadena de caracteres con el formato:
+ * "fecha - numero_vuelo".
+ * La memoria de la cadena debe ser borrada manualmente.
+ */
 char *generar_clave(fecha_t *fecha, char *numero_vuelo) {
   char *clave = malloc(sizeof(char) * (L_CLAVE));
   char *fecha_hora = fecha_a_str(fecha);
@@ -177,6 +180,9 @@ bool _agregar_archivo(vuelos_t *vuelos, const char *nombre_archivo) {
   fclose(archivo_vuelos);
   return true;
 }
+/* Dada una cola ya inicializada, se invierten los loselementos
+ * de la misma, es decir, el primer elemento pasa a estar último.
+ */
 void invertir_cola(cola_t *cola) {
   pila_t *pila_aux = pila_crear();
   while (!cola_esta_vacia(cola))
@@ -231,6 +237,9 @@ bool _ver_tablero(vuelos_t *vuelos, size_t cant_vuelos, const char *modo,
   return true;
 }
 
+/* Dado un vuelo, se muestra en pantalla toda la información
+ * de la estructura.
+ */
 void mostrar_vuelo(vuelo_t *vuelo) {
   char *fecha_hora = fecha_a_str(vuelo->fecha);
   printf("%s %s %s %s %s %s %s %s %s %s\n", vuelo->numero, vuelo->aerolinea,
@@ -247,6 +256,15 @@ bool _info_vuelo(vuelos_t *vuelos, const char *cod_vuelo) {
   mostrar_vuelo(vuelo);
   return true;
 }
+
+/* Devuelve un numero:
+ *   menor a 0  si  a < b
+ *       0      si  a == b
+ *   mayor a 0  si  a > b
+ * a es mayor a b si tiene mayor prioridad que b.
+ * Si dos vuelos tienen la misma prioridad, se desempatará por el código de
+ * vuelo mostrándolos de menor a mayor (tomado como cadena).
+ */
 int vuelos_prioridad_cmp(const void *a, const void *b) {
   char **datos_vuelo1 = split((char *)a, ' ');
   char **datos_vuelo2 = split((char *)b, ' ');
@@ -262,6 +280,11 @@ int vuelos_prioridad_cmp(const void *a, const void *b) {
   return resultado;
 }
 
+/* Dado una prioridad y un numero_vuelo (ambos strings)
+ * devuelve una cadena de caracteres con el formato:
+ * "prioridad - numero_vuelo".
+ * La memoria de la cadena debe ser borrada manualmente.
+ */
 char *generar_elemento_heap(char *prioridad, char *numero_vuelo) {
   size_t lng_clave = strlen(prioridad) + strlen(numero_vuelo) + 10;
   char *clave = malloc(lng_clave * sizeof(char));
@@ -351,8 +374,6 @@ bool _borrar(vuelos_t *vuelos, fecha_t *desde, fecha_t *hasta) {
   }
 
   while (!cola_esta_vacia(resultado)) {
-    // Clave = "fecha - codigo_vuelo"
-    // split(Clave, ' ') -> ["fecha", "-", "codigo_vuelo", NULL]
     char *actual = cola_desencolar(resultado);
     char **actual_v = split(actual, ' ');
 
@@ -372,6 +393,17 @@ bool _borrar(vuelos_t *vuelos, fecha_t *desde, fecha_t *hasta) {
   return true;
 }
 
+/************************************************************
+ *                        FUNCIONES WRAPER
+ ************************************************************/
+/*
+ * Son las funciones principales del programa.
+ * Reciben por parametro una estructura de vuelos ya inicializada,
+ * un vector (args) con los argumentos necesarios para el comando particular,
+ * y la cantidad de argumentos en ese vector(argc).
+ * Devuelven true en caso de que los parametros con correctos y además
+ * pudo ejecutar correctamente el comando.
+ */
 bool agregar_archivo(vuelos_t *vuelos, char **args, size_t argc) {
   if (argc != ARGS_AGREGAR_ARCHIVO)
     return false;
